@@ -5,9 +5,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.magikman.pongai.Resources;
 import com.magikman.pongai.controller.Controller;
 import com.magikman.pongai.controller.HumanController;
-import com.magikman.pongai.controller.NeatController;
 import com.magikman.pongai.controller.NeuroEvoController;
-import com.magikman.pongai.neat.neat.Client;
 
 import neuroEvo.GenomeNet;
 
@@ -43,7 +41,7 @@ public class Game {
 		
 	}
 	
-	public Game(GenomeNet mlPlayer1, Client mlPlayer2, int winScore) {
+	public Game(GenomeNet mlPlayer1, GenomeNet mlPlayer2, int winScore) {
 		
 		this.winScore = winScore;
 		this.leftScore = 0;
@@ -55,13 +53,13 @@ public class Game {
 		this.rightPaddle = new Paddle(gameBall, false);
 		
 		player1 = new NeuroEvoController(leftPaddle, mlPlayer1, this, true);
-		player2 = new NeatController(rightPaddle, mlPlayer2, this, false);
+		player2 = new NeuroEvoController(rightPaddle, mlPlayer2, this, false);
 		
 		aiRight = true;
 		aiLeft = true;
 	}
 	
-	public Game(GenomeNet mlPlayer, int winScore) {
+	public Game(GenomeNet mlPlayer, int winScore, boolean leftAI) {
 		this.winScore = winScore;
 		this.leftScore = 0;
 		this.rightScore = 0;
@@ -71,28 +69,16 @@ public class Game {
 		this.leftPaddle = new Paddle(gameBall, true);
 		this.rightPaddle = new Paddle(gameBall, false);
 		
-		player1 = new NeuroEvoController(leftPaddle, mlPlayer, this, true);
-		player2 = new HumanController(rightPaddle, true);
+		if(leftAI) {
+			player1 = new NeuroEvoController(leftPaddle, mlPlayer, this, true);
+			player2 = new HumanController(rightPaddle, true);
+		} else {
+			player1 = new NeuroEvoController(rightPaddle, mlPlayer, this, true);
+			player2 = new HumanController(leftPaddle, true);
+		}
 		
-		aiLeft = true;
-		aiRight = false;
-	}
-	
-	public Game(Client mlPlayer, int winScore) {
-		this.winScore = winScore;
-		this.leftScore = 0;
-		this.rightScore = 0;
-		
-		this.gameBall = new Ball();
-		
-		this.leftPaddle = new Paddle(gameBall, true);
-		this.rightPaddle = new Paddle(gameBall, false);
-		
-		player1 = new HumanController(leftPaddle, false);
-		player2 = new NeatController(rightPaddle, mlPlayer, this, false);
-		
-		aiLeft = false;
-		aiRight = true;
+		aiLeft = leftAI;
+		aiRight = !leftAI;
 	}
 	
 	public int[] getScores() {
@@ -114,7 +100,7 @@ public class Game {
 			}
 			
 			if(aiRight) {
-				((NeatController)player2).increaseFitness(-70);
+				((NeuroEvoController)player2).increaseFitness(-70);
 			}
 		}
 		if((gameBall.getX() + gameBall.getHitbox().width) < 0) {
@@ -122,7 +108,7 @@ public class Game {
 			rightScore++;
 			
 			if(aiRight) {
-				((NeatController)player2).increaseFitness(100);
+				((NeuroEvoController)player2).increaseFitness(100);
 				
 			}
 			
@@ -139,9 +125,9 @@ public class Game {
 		}
 		
 		if(aiRight) {
-			((NeatController)player2).increaseFitness(5 * dt);
+			((NeuroEvoController)player2).increaseFitness(5 * dt);
 			
-			if(rightPaddle.justHit) ((NeatController)player2).increaseFitness(25);
+			if(rightPaddle.justHit) ((NeuroEvoController)player2).increaseFitness(25);
 		}
 	}
 	

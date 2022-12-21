@@ -8,8 +8,6 @@ import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.magikman.pongai.Resources;
 import com.magikman.pongai.gameObjects.*;
-import com.magikman.pongai.neat.neat.Neat;
-
 import neuroEvo.Population;
 
 public class PlayState extends State{
@@ -22,8 +20,8 @@ public class PlayState extends State{
 	GlyphLayout winner;
 	
 	Game[] allGames;
-	Population neuroEvo;
-	Neat neat;
+	Population neuroEvo1, neuroEvo2;
+	
 	
 	int popSize = 20;
 	
@@ -51,19 +49,20 @@ public class PlayState extends State{
 		fnt.getData().setScale(1.5f);
 		fnt.setColor(Color.WHITE);
 		
-		String scoreDes = String.format("Total Genome Overall Wins: %d%20sTotal NEAT Overall Wins: %d\nTotal Genome Game Wins: %d%20sTotal NEAT Game Wins%d\nCurrent Game Genome Wins: %d%20sCurrent NEAT Game Wins: %d", leftWins, "", rightWins, leftIndWins, "", rightIndWins, currLeftWins, "", currRightWins);
+		String scoreDes = String.format("Total Left Overall Wins: %d%20sTotal Right Overall Wins: %d\nTotal Left Game Wins: %d%20sTotal Right Game Wins: %d\nCurrent Game Left Wins: %d%20sCurrent Right Wins: %d", leftWins, "", rightWins, leftIndWins, "", rightIndWins, currLeftWins, "", currRightWins);
 		currentScores.setText(fnt,  scoreDes);
 		
 		fnt.getData().setScale(3f);
 		
 		allGames = new Game[popSize];
-		neuroEvo = new Population(8, 3, popSize, false);
-		neat = new Neat(8, 3, popSize);
+		neuroEvo1 = new Population(8, 3, popSize, false);
+		neuroEvo2 = new Population(8, 3, popSize, false);
+		
 		
 		float buttonSize = Resources.height / 6;
 		
-		left = new Button("     vs\nGenome", (Resources.width / 4) - buttonSize / 2, Resources.height / 6);
-		right = new Button("   vs\nNEAT", (Resources.width / 4 * 3) - buttonSize / 2, Resources.height / 6);
+		left = new Button(" vs\nLeft", (Resources.width / 4) - buttonSize / 2, Resources.height / 6);
+		right = new Button("   vs\nRight", (Resources.width / 4 * 3) - buttonSize / 2, Resources.height / 6);
 		
 		desX = Resources.width / 2 - currentScores.width / 2;
 		desY = Resources.height / 8 + currentScores.height / 4;
@@ -73,7 +72,7 @@ public class PlayState extends State{
 	
 	public void setup() {
 		for(int x = 0; x < popSize; x++) {
-			allGames[x] = new Game(neuroEvo.getGenome(x), neat.getClient(x), 7);
+			allGames[x] = new Game(neuroEvo1.getGenome(x), neuroEvo2.getGenome(x), 7);
 		}
 	}
 	
@@ -127,7 +126,7 @@ public class PlayState extends State{
 		}
 		
 		fnt.getData().setScale(1.5f);
-		String scoreDes = String.format("Total Genome Overall Wins: %d%20sTotal NEAT Overall Wins: %d\nTotal Genome Game Wins: %d%20sTotal NEAT Game Wins%d\nCurrent Game Genome Wins: %d%20sCurrent NEAT Game Wins: %d", leftWins, "", rightWins, leftIndWins, "", rightIndWins, currLeftWins, "", currRightWins);
+		String scoreDes = String.format("Total Left Overall Wins: %d%20sTotal Right Overall Wins: %d\nTotal Left Game Wins: %d%20sTotal Right Game Wins: %d\nCurrent Game Left Wins: %d%20s NEAT Right Wins: %d", leftWins, "", rightWins, leftIndWins, "", rightIndWins, currLeftWins, "", currRightWins);
 		currentScores.setText(fnt,  scoreDes);
 		fnt.getData().setScale(3f);
 	}
@@ -135,10 +134,10 @@ public class PlayState extends State{
 	public double getMinFitness() {
 		int index = 0;
 		for(int x = 1; x < popSize; x++) {
-			if(neat.getClient(x).getScore() < neat.getClient(index).getScore()) index = x;
+			if(neuroEvo2.getGenome(x).getFitness() < neuroEvo2.getGenome(index).getFitness()) index = x;
 		}
 		
-		return Math.abs(neat.getClient(index).getScore());
+		return Math.abs(neuroEvo2.getGenome(index).getFitness());
 	}
 	
 	public boolean checkEnd() {
@@ -156,15 +155,15 @@ public class PlayState extends State{
 	public void setupProcedure() {
 		
 		for(int x = 0; x < popSize; x++) {
-			neat.getClient(x).increaseScore(getMinFitness());
+			neuroEvo2.getGenome(x).increaseFitness(getMinFitness());
 		}
 		
-		neuroEvo.breed();
-		neat.evolve();
+		neuroEvo1.breed();
+		neuroEvo2.breed();
 		
 		for(int x = 0; x < allGames.length; x++) {
 			allGames[x].dispose();
-			neat.getClient(x).setScore(0);
+			neuroEvo2.getGenome(x).setFitness(0);
 		}
 		
 	}
@@ -193,13 +192,13 @@ public class PlayState extends State{
 		if(left.getClick() && !human) {
 			human = true;
 			setupProcedure();
-			humanGame = new Game(neuroEvo.getGenome(0), 7);
+			humanGame = new Game(neuroEvo1.getGenome(0), 7, true);
 		}
 		
 		if(right.getClick() && !human) {
 			human = true;
 			setupProcedure();
-			humanGame = new Game(neat.getClient(0), 7);
+			humanGame = new Game(neuroEvo2.getGenome(0), 7, false);
 		}
 	}
 

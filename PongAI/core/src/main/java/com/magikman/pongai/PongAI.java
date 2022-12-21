@@ -9,7 +9,6 @@ import com.magikman.pongai.state.*;
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class PongAI extends ApplicationAdapter {
 	
-	
 	SpriteBatch sb;
 	Manager gsm;
 	
